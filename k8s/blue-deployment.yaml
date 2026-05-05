@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: python-app
-        image: YOUR_DOCKERHUB_USERNAME/blue-green:BLUE_TAG
+        image: egxsmit/blue-green:BLUE_TAG
         ports:
         - containerPort: 5000
         env:
