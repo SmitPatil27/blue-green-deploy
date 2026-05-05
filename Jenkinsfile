@@ -41,27 +41,29 @@ pipeline {
             }
         }
 
-        stage('4. Detect Active Slot') {
-            steps {
-                script {
-                    bat "kubectl config use-context docker-desktop"
-                    def active = bat(
-                        script: 'kubectl get svc python-app-service -o jsonpath={.spec.selector.slot} 2>nul || echo blue',
-                        returnStdout: true
-                    ).trim().tokenize('\n').last().trim()
+       stage('4. Detect Active Slot') {
+    steps {
+        script {
+            bat 'kubectl config use-context docker-desktop'
 
-                    if (active == 'blue') {
-                        env.ACTIVE_SLOT = 'blue'
-                        env.DEPLOY_SLOT = 'green'
-                    } else {
-                        env.ACTIVE_SLOT = 'green'
-                        env.DEPLOY_SLOT = 'blue'
-                    }
-                    echo "Active: ${env.ACTIVE_SLOT} | Deploying to: ${env.DEPLOY_SLOT}"
-                }
+            def activeSlot = bat(
+                script: 'kubectl get svc python-app-service -o jsonpath="{.spec.selector.slot}"',
+                returnStdout: true
+            ).trim()
+
+            if (!activeSlot) {
+                activeSlot = "blue"
             }
-        }
 
+            echo "Active Slot: ${activeSlot}"
+
+            env.ACTIVE_SLOT = activeSlot
+            env.INACTIVE_SLOT = (activeSlot == "blue") ? "green" : "blue"
+
+            echo "Deploying to: ${env.INACTIVE_SLOT}"
+        }
+    }
+}
         stage('5. Deploy to Inactive Slot') {
             steps {
                 script {
